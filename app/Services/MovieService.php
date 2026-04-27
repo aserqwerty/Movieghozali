@@ -2,76 +2,80 @@
 
 namespace App\Services;
 
-use App\Models\Movie;
-use App\Models\Category;
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use App\Repositories\Interfaces\MovieRepositoryInterface;
 
 class MovieService
 {
+    protected $movieRepository;
+    protected $categoryRepository;
+
+    public function __construct(MovieRepositoryInterface $movieRepository, CategoryRepositoryInterface $categoryRepository)
+    {
+        $this->movieRepository = $movieRepository;
+        $this->categoryRepository = $categoryRepository;
+    }
+
     public function getMoviesForHomepage($search = null)
     {
-        $query = Movie::latest();
-        if ($search) {
-            $query->where('judul', 'like', '%' . $search . '%')
-                ->orWhere('sinopsis', 'like', '%' . $search . '%');
-        }
-        return $query->paginate(6)->withQueryString();
+        return $this->movieRepository->getAllPaginated(6, $search);
     }
 
     public function getMovieById($id)
     {
-        return Movie::findOrFail($id);
+        return $this->movieRepository->findById($id);
     }
 
     public function getAllCategories()
     {
-        return Category::all();
+        return $this->categoryRepository->all();
     }
 
     public function storeMovie(array $data, $file)
     {
-        $randomName = Str::uuid()->toString();
+        $randomName    = Str::uuid()->toString();
         $fileExtension = $file->getClientOriginalExtension() ?: 'jpg';
-        $fileName = $randomName . '.' . $fileExtension;
+        $fileName      = $randomName . '.' . $fileExtension;
 
         $file->move(public_path('images'), $fileName);
 
-        return Movie::create([
-            'id' => $data['id'],
-            'judul' => $data['judul'],
+        return $this->movieRepository->create([
+            'id'          => $data['id'],
+            'judul'       => $data['judul'],
             'category_id' => $data['category_id'],
-            'sinopsis' => $data['sinopsis'],
-            'tahun' => $data['tahun'],
-            'pemain' => $data['pemain'],
+            'sinopsis'    => $data['sinopsis'],
+            'tahun'       => $data['tahun'],
+            'pemain'      => $data['pemain'],
             'foto_sampul' => $fileName,
         ]);
     }
 
     public function getMoviesForAdmin()
     {
-        return Movie::latest()->paginate(10);
+        return $this->movieRepository->getAllForAdmin(10);
     }
 
     public function updateMovie($id, array $data, $file = null)
     {
-        $movie = Movie::findOrFail($id);
-
         $updateData = [
-            'judul' => $data['judul'],
-            'sinopsis' => $data['sinopsis'],
+            'judul'       => $data['judul'],
+            'sinopsis'    => $data['sinopsis'],
             'category_id' => $data['category_id'],
-            'tahun' => $data['tahun'],
-            'pemain' => $data['pemain'],
+            'tahun'       => $data['tahun'],
+            'pemain'      => $data['pemain'],
         ];
 
         if ($file) {
-            $randomName = Str::uuid()->toString();
+            $randomName    = Str::uuid()->toString();
             $fileExtension = $file->getClientOriginalExtension() ?: 'jpg';
-            $fileName = $randomName . '.' . $fileExtension;
+            $fileName      = $randomName . '.' . $fileExtension;
 
             $file->move(public_path('images'), $fileName);
 
+            // Hapus foto lama
+            $movie = $this->movieRepository->findById($id);
             if (File::exists(public_path('images/' . $movie->foto_sampul))) {
                 File::delete(public_path('images/' . $movie->foto_sampul));
             }
@@ -79,18 +83,17 @@ class MovieService
             $updateData['foto_sampul'] = $fileName;
         }
 
-        $movie->update($updateData);
-        return $movie;
+        return $this->movieRepository->update($id, $updateData);
     }
 
     public function deleteMovie($id)
     {
-        $movie = Movie::findOrFail($id);
+        $movie = $this->movieRepository->findById($id);
 
         if (File::exists(public_path('images/' . $movie->foto_sampul))) {
             File::delete(public_path('images/' . $movie->foto_sampul));
         }
 
-        return $movie->delete();
+        return $this->movieRepository->delete($id);
     }
 }
