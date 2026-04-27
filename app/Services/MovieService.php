@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
-use App\Repositories\Interfaces\MovieRepositoryInterface;
+use App\Interfaces\MovieRepositoryInterface;
 
 class MovieService
 {

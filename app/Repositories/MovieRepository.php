@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Movie;
-use App\Repositories\Interfaces\MovieRepositoryInterface;
+use App\Interfaces\MovieRepositoryInterface;
 
 class MovieRepository implements MovieRepositoryInterface
 {

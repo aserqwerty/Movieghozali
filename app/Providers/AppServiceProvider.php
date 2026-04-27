@@ -5,9 +5,9 @@ namespace App\Providers;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\MovieRepository;
-use App\Repositories\Interfaces\MovieRepositoryInterface;
+use App\Interfaces\MovieRepositoryInterface;
 use App\Repositories\CategoryRepository;
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Interfaces\CategoryRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
